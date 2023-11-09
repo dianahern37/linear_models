@@ -239,14 +239,22 @@ airbnb_lm = function(df) {
 nyc_airbnb |>
   nest(df = -borough) |>
   mutate(
-    models = map(df, airbnb_lm)
-  )
+    models = map(df, airbnb_lm),
+    results = map(models, broom::tidy)
+  ) |>
+  select(borough, results) |>
+  unnest(results) |>
+  select(borough, term, estimate) |>
+  pivot_wider(
+    names_from = term,
+    values_from = estimate
+  ) |>
+  knitr::kable(digits = 2)
 ```
 
-    ## # A tibble: 4 × 3
-    ##   borough   df                    models
-    ##   <chr>     <list>                <list>
-    ## 1 Bronx     <tibble [649 × 4]>    <lm>  
-    ## 2 Queens    <tibble [3,821 × 4]>  <lm>  
-    ## 3 Brooklyn  <tibble [16,810 × 4]> <lm>  
-    ## 4 Manhattan <tibble [19,212 × 4]> <lm>
+| borough   | (Intercept) | stars | room_typePrivate room | room_typeShared room |
+|:----------|------------:|------:|----------------------:|---------------------:|
+| Bronx     |       90.07 |  4.45 |                -52.91 |               -70.55 |
+| Queens    |       91.58 |  9.65 |                -69.26 |               -94.97 |
+| Brooklyn  |       69.63 | 20.97 |                -92.22 |              -105.84 |
+| Manhattan |       95.69 | 27.11 |               -124.19 |              -153.64 |

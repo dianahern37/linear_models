@@ -127,7 +127,35 @@ airbnb_lm = function(df) {
 nyc_airbnb |>
   nest(df = -borough) |>
   mutate(
-    models = map(df, airbnb_lm)
-  )
+    models = map(df, airbnb_lm),
+    results = map(models, broom::tidy)
+  ) |>
+  select(borough, results) |>
+  unnest(results) |>
+  select(borough, term, estimate) |>
+  pivot_wider(
+    names_from = term,
+    values_from = estimate
+  ) |>
+  knitr::kable(digits = 2)
+```
+
+same thing but just a little different
+
+```{r}
+nyc_airbnb |>
+  nest(df = -borough) |>
+  mutate(
+    models = map(df, \(df) lm(price ~ stars + borough, data = df)),
+    results = map(models, broom::tidy)
+  ) |>
+  select(borough, results) |>
+  unnest(results) |>
+  select(borough, term, estimate) |>
+  pivot_wider(
+    names_from = term,
+    values_from = estimate
+  ) |>
+  knitr::kable(digits = 2)
 ```
 
