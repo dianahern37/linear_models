@@ -1,0 +1,16 @@
+---
+title: "Linear Models"
+author: "Diana Hernandez"
+date: "2023-11-09"
+output: github_document
+---
+
+Load libraries and settings.
+
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+
+set.seed(1)
+```
+
