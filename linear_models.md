@@ -154,3 +154,46 @@ fit |>
     ## 5 boroughBronx             -63.0      8.22     -7.67 1.76e-14
     ## 6 room_typePrivate room   -105.       2.05    -51.2  0       
     ## 7 room_typeShared room    -129.       6.15    -21.0  2.24e-97
+
+# Quick look at diagnostics
+
+``` r
+nyc_airbnb |>
+  modelr::add_residuals(fit) |>
+  ggplot(aes(x = borough, y = resid)) +
+  geom_violin() 
+```
+
+    ## Warning: Removed 9962 rows containing non-finite values (`stat_ydensity()`).
+
+![](linear_models_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+nyc_airbnb |>
+  modelr::add_residuals(fit) |>
+  ggplot(aes(x = stars, y = resid)) +
+  geom_point() 
+```
+
+    ## Warning: Removed 9962 rows containing missing values (`geom_point()`).
+
+![](linear_models_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+
+# Hypothesis testing
+
+fit a null and alternative model
+
+``` r
+fit_null = lm(price ~ stars + borough, data = nyc_airbnb)
+
+fit_alternative = lm(price ~ stars + borough + room_type, data = nyc_airbnb)
+
+anova(fit_null, fit_alternative) |>
+  broom::tidy()
+```
+
+    ## # A tibble: 2 × 7
+    ##   term                        df.residual    rss    df   sumsq statistic p.value
+    ##   <chr>                             <dbl>  <dbl> <dbl>   <dbl>     <dbl>   <dbl>
+    ## 1 price ~ stars + borough           30525 1.01e9    NA NA            NA       NA
+    ## 2 price ~ stars + borough + …       30523 9.21e8     2  8.42e7     1394.       0
