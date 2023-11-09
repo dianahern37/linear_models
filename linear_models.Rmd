@@ -14,3 +14,33 @@ library(p8105.datasets)
 set.seed(1)
 ```
 
+
+# Load and clean the Airbnb data
+
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location / 2) |> 
+  rename(
+    borough = neighbourhood_group,
+    neighborhood = neighbourhood) |> 
+  filter(borough != "Staten Island") |> 
+  select(price, stars, borough, neighborhood, room_type)
+```
+
+Let's fit the data
+
+```{r}
+fit = 
+  nyc_airbnb |>
+  lm(price ~ stars + borough, data = _)
+```
+
+Let's look at the `fit`
+
+```{r}
+summary(fit)
+```
+
