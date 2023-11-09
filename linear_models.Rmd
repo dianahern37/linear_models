@@ -106,3 +106,28 @@ anova(fit_null, fit_alternative) |>
   broom::tidy()
 ```
 
+# Borough-level differences
+
+```{r}
+fit =
+  nyc_airbnb |>
+  lm(price ~ stars * borough + room_type * borough, data = _)
+
+fit |>
+  broom::tidy()
+```
+
+Fit separate linear model for each borough
+
+```{r}
+airbnb_lm = function(df) {
+   lm(price ~ stars + room_type, data = df)
+}
+
+nyc_airbnb |>
+  nest(df = -borough) |>
+  mutate(
+    models = map(df, airbnb_lm)
+  )
+```
+
