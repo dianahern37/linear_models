@@ -140,22 +140,41 @@ nyc_airbnb |>
   knitr::kable(digits = 2)
 ```
 
-same thing but just a little different
+# Homicides in Baltimore
 
 ```{r}
-nyc_airbnb |>
-  nest(df = -borough) |>
+baltimore_df =
+  read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv") |> 
+  filter(city == "Baltimore") |>
   mutate(
-    models = map(df, \(df) lm(price ~ stars + borough, data = df)),
-    results = map(models, broom::tidy)
-  ) |>
-  select(borough, results) |>
-  unnest(results) |>
-  select(borough, term, estimate) |>
-  pivot_wider(
-    names_from = term,
-    values_from = estimate
-  ) |>
-  knitr::kable(digits = 2)
+    resolved = as.numeric(disposition == "Closed by arrest"),
+    victim_age = as.numeric(victim_age),
+    victim_race = fct_relevel(victim_race, "White")) |> 
+  select(resolved, victim_age, victim_race, victim_sex)
+```
+
+
+fitting a logistic regression
+
+```{r}
+fit_logistic =
+  baltimore_df |>
+  glm(
+    resolved ~ victim_age + victim_race + victim_sex,
+    data = _,
+    family = binomial()
+  )
+```
+ 
+Look at model results
+
+```{r}
+fit_logistic |>
+  broom::tidy()
+```
+
+```{r}
+baltimore_df |>
+  count(victim_race)
 ```
 

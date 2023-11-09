@@ -258,3 +258,69 @@ nyc_airbnb |>
 | Queens    |       91.58 |  9.65 |                -69.26 |               -94.97 |
 | Brooklyn  |       69.63 | 20.97 |                -92.22 |              -105.84 |
 | Manhattan |       95.69 | 27.11 |               -124.19 |              -153.64 |
+
+# Homicides in Baltimore
+
+``` r
+baltimore_df =
+  read_csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv") |> 
+  filter(city == "Baltimore") |>
+  mutate(
+    resolved = as.numeric(disposition == "Closed by arrest"),
+    victim_age = as.numeric(victim_age),
+    victim_race = fct_relevel(victim_race, "White")) |> 
+  select(resolved, victim_age, victim_race, victim_sex)
+```
+
+    ## Rows: 52179 Columns: 12
+    ## ── Column specification ────────────────────────────────────────────────────────
+    ## Delimiter: ","
+    ## chr (9): uid, victim_last, victim_first, victim_race, victim_age, victim_sex...
+    ## dbl (3): reported_date, lat, lon
+    ## 
+    ## ℹ Use `spec()` to retrieve the full column specification for this data.
+    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+fitting a logistic regression
+
+``` r
+fit_logistic =
+  baltimore_df |>
+  glm(
+    resolved ~ victim_age + victim_race + victim_sex,
+    data = _,
+    family = binomial()
+  )
+```
+
+Look at model results
+
+``` r
+fit_logistic |>
+  broom::tidy()
+```
+
+    ## # A tibble: 7 × 5
+    ##   term                estimate std.error statistic  p.value
+    ##   <chr>                  <dbl>     <dbl>     <dbl>    <dbl>
+    ## 1 (Intercept)          1.19      0.235       5.07  4.04e- 7
+    ## 2 victim_age          -0.00724   0.00327    -2.21  2.68e- 2
+    ## 3 victim_raceAsian     0.296     0.660       0.449 6.53e- 1
+    ## 4 victim_raceBlack    -0.842     0.175      -4.81  1.47e- 6
+    ## 5 victim_raceHispanic -0.265     0.317      -0.837 4.02e- 1
+    ## 6 victim_raceOther    -0.768     0.883      -0.870 3.85e- 1
+    ## 7 victim_sexMale      -0.880     0.136      -6.45  1.15e-10
+
+``` r
+baltimore_df |>
+  count(victim_race)
+```
+
+    ## # A tibble: 5 × 2
+    ##   victim_race     n
+    ##   <fct>       <int>
+    ## 1 White         157
+    ## 2 Asian          11
+    ## 3 Black        2596
+    ## 4 Hispanic       57
+    ## 5 Other           6
