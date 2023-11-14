@@ -135,3 +135,46 @@ rmse(wiggly_model, test_df)
 ```
 
     ## [1] 0.289051
+
+# CV using `modelr`
+
+``` r
+cv_df = 
+  crossv_mc(nonlin_df, 100) |> 
+  mutate(
+    train = map(train, as_tibble),
+    test = map(test, as_tibble))
+```
+
+Apply each model to all training
+
+``` r
+cv_results =
+  cv_df |>
+  mutate(
+    linear_fit = map(train, \(df) lm(y ~ x, data = df)),
+    smooth_fit = map(train, \(df) mgcv::gam(y ~ s(x), data = df)),
+    wiggly_fit = map(train, \(df) gam(y ~ s(x, k = 30), sp = 10e-6, data = df))
+  ) |>
+  mutate(
+    rmse_linear = map2_dbl(linear_fit, test, \(mod, df) rmse(mod, df)),
+    rmse_smooth = map2_dbl(smooth_fit, test, \(mod, df) rmse(mod, df)),
+    rmse_wiggly = map2_dbl(wiggly_fit, test, \(mod, df) rmse(mod, df))
+  )
+```
+
+Plot!
+
+``` r
+cv_results |> 
+  select(starts_with("rmse")) |> 
+  pivot_longer(
+    everything(),
+    names_to = "model", 
+    values_to = "rmse",
+    names_prefix = "rmse_") |> 
+  mutate(model = fct_inorder(model)) |> 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
+![](cross_validation_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
