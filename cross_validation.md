@@ -55,3 +55,83 @@ nonlin_df |>
 ```
 
 ![](cross_validation_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+Do the train / test split.
+
+``` r
+train_df = sample_n(nonlin_df, 80)
+test_df = anti_join(nonlin_df, train_df, by = "id")
+
+ggplot(train_df, aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_point(data = test_df, color = "red")
+```
+
+![](cross_validation_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+Models
+
+``` r
+linear_model = lm(y ~ x, data = train_df)
+smooth_model = mgcv::gam(y ~ s(x), data = train_df)
+wiggly_model = mgcv::gam(y ~ s(x, k = 30), sp = 10e-6, data = train_df)
+```
+
+Quick visualization!
+
+``` r
+train_df |> 
+  modelr::add_predictions(smooth_model) |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_line(aes(y = pred))
+```
+
+![](cross_validation_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+train_df |> 
+  modelr::add_predictions(wiggly_model) |> 
+  ggplot(aes(x = x, y = y)) + geom_point() + 
+  geom_line(aes(y = pred), color = "red")
+```
+
+![](cross_validation_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+Root mean squared errors (RMSEs) for each model.
+
+``` r
+rmse(linear_model, train_df)
+```
+
+    ## [1] 0.7178747
+
+``` r
+rmse(smooth_model, train_df)
+```
+
+    ## [1] 0.2874834
+
+``` r
+rmse(wiggly_model, train_df)
+```
+
+    ## [1] 0.2498309
+
+``` r
+rmse(linear_model, test_df)
+```
+
+    ## [1] 0.7052956
+
+``` r
+rmse(smooth_model, test_df)
+```
+
+    ## [1] 0.2221774
+
+``` r
+rmse(wiggly_model, test_df)
+```
+
+    ## [1] 0.289051
