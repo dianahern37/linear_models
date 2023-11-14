@@ -1,0 +1,15 @@
+---
+title: "Cross Validation"
+author: "Diana Hernandez"
+date: "2023-11-14"
+output: github_document
+---
+
+Load libraries.
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(mgcv)
+```
+
