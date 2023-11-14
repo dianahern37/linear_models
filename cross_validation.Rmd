@@ -121,3 +121,9 @@ cv_results |>
   ggplot(aes(x = model, y = rmse)) + geom_violin()
 ```
 
+Example: Child Growth
+
+```{r}
+child_growth = read_csv("./data/nepalese_children.csv")
+```
+
