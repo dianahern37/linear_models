@@ -5,11 +5,28 @@ date: "2023-11-14"
 output: github_document
 ---
 
-Load libraries.
+Load libraries and set seed for reproducibility.
 
 ```{r}
 library(tidyverse)
 library(modelr)
 library(mgcv)
+
+set.seed(1)
+```
+
+# Nonlinear data and CV
+
+```{r}
+nonlin_df = 
+  tibble(
+    id = 1:100,
+    x = runif(100, 0, 1),
+    y = 1 - 10 * (x - .3) ^ 2 + rnorm(100, 0, .3)
+  )
+
+nonlin_df |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point()
 ```
 

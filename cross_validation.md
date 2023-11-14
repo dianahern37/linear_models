@@ -3,7 +3,7 @@ Cross Validation
 Diana Hernandez
 2023-11-14
 
-Load libraries.
+Load libraries and set seed for reproducibility.
 
 ``` r
 library(tidyverse)
@@ -34,3 +34,24 @@ library(mgcv)
     ##     collapse
     ## 
     ## This is mgcv 1.9-0. For overview type 'help("mgcv-package")'.
+
+``` r
+set.seed(1)
+```
+
+# Nonlinear data and CV
+
+``` r
+nonlin_df = 
+  tibble(
+    id = 1:100,
+    x = runif(100, 0, 1),
+    y = 1 - 10 * (x - .3) ^ 2 + rnorm(100, 0, .3)
+  )
+
+nonlin_df |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_point()
+```
+
+![](cross_validation_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
