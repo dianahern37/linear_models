@@ -210,3 +210,82 @@ bootstrap_results |>
 |:------------|--------:|
 | (Intercept) |   0.075 |
 | x           |   0.101 |
+
+Construct a CI
+
+``` r
+bootstrap_results |> 
+  group_by(term) |> 
+  summarize(
+    ci_lower = quantile(estimate, 0.025), 
+    ci_upper = quantile(estimate, 0.975))
+```
+
+    ## # A tibble: 2 × 3
+    ##   term        ci_lower ci_upper
+    ##   <chr>          <dbl>    <dbl>
+    ## 1 (Intercept)     1.79     2.08
+    ## 2 x               2.91     3.31
+
+Fitted lines for each regression
+
+``` r
+boot_straps |> 
+  unnest(strap_sample) |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_line(aes(group = strap_number), stat = "smooth", method = "lm", se = FALSE, alpha = .1, color = "blue") +
+  geom_point(data = sim_df_nonconst, alpha = .5)
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](bootstrapping_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+`bootstrap` function
+
+``` r
+boot_straps = 
+  sim_df_nonconst |> 
+  modelr::bootstrap(n = 1000)
+
+boot_straps |> pull(strap) |> nth(1)
+```
+
+    ## <resample [250 x 3]> 8, 132, 69, 225, 180, 122, 34, 170, 216, 122, ...
+
+``` r
+boot_straps |> pull(strap) |> nth(1) |> as_tibble()
+```
+
+    ## # A tibble: 250 × 3
+    ##         x  error     y
+    ##     <dbl>  <dbl> <dbl>
+    ##  1  1.74   0.747  7.96
+    ##  2  0.411  0.343  3.58
+    ##  3  1.15  -1.12   4.34
+    ##  4 -0.157 -0.159  1.37
+    ##  5  2.21  -1.13   7.50
+    ##  6  2.34   0.488  9.52
+    ##  7  0.946 -0.498  4.34
+    ##  8  1.21   1.55   7.17
+    ##  9  2.52   0.528 10.1 
+    ## 10  2.34   0.488  9.52
+    ## # ℹ 240 more rows
+
+``` r
+sim_df_nonconst |> 
+  modelr::bootstrap(n = 1000) |> 
+  mutate(
+    models = map(strap, \(df) lm(y ~ x, data = df) ),
+    results = map(models, broom::tidy)) |> 
+  select(-strap, -models) |> 
+  unnest(results) |> 
+  group_by(term) |> 
+  summarize(boot_se = sd(estimate))
+```
+
+    ## # A tibble: 2 × 2
+    ##   term        boot_se
+    ##   <chr>         <dbl>
+    ## 1 (Intercept)  0.0790
+    ## 2 x            0.104

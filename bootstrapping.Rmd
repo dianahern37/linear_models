@@ -109,3 +109,47 @@ bootstrap_results |>
   knitr::kable(digits = 3)
 ```
 
+Construct a CI
+
+```{r}
+bootstrap_results |> 
+  group_by(term) |> 
+  summarize(
+    ci_lower = quantile(estimate, 0.025), 
+    ci_upper = quantile(estimate, 0.975))
+```
+
+Fitted lines for each regression
+
+```{r}
+boot_straps |> 
+  unnest(strap_sample) |> 
+  ggplot(aes(x = x, y = y)) + 
+  geom_line(aes(group = strap_number), stat = "smooth", method = "lm", se = FALSE, alpha = .1, color = "blue") +
+  geom_point(data = sim_df_nonconst, alpha = .5)
+```
+
+`bootstrap` function
+
+```{r}
+boot_straps = 
+  sim_df_nonconst |> 
+  modelr::bootstrap(n = 1000)
+
+boot_straps |> pull(strap) |> nth(1)
+
+boot_straps |> pull(strap) |> nth(1) |> as_tibble()
+```
+
+```{r}
+sim_df_nonconst |> 
+  modelr::bootstrap(n = 1000) |> 
+  mutate(
+    models = map(strap, \(df) lm(y ~ x, data = df) ),
+    results = map(models, broom::tidy)) |> 
+  select(-strap, -models) |> 
+  unnest(results) |> 
+  group_by(term) |> 
+  summarize(boot_se = sd(estimate))
+```
+
