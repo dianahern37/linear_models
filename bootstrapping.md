@@ -289,3 +289,46 @@ sim_df_nonconst |>
     ##   <chr>         <dbl>
     ## 1 (Intercept)  0.0790
     ## 2 x            0.104
+
+# Airbnb data
+
+``` r
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location / 2) |> 
+  rename(
+    borough = neighbourhood_group,
+    neighborhood = neighbourhood) |> 
+  filter(borough != "Staten Island") |> 
+  drop_na(price, stars) |> 
+  select(price, stars, borough, neighborhood, room_type)
+```
+
+Quick plot
+
+``` r
+nyc_airbnb |> 
+  ggplot(aes(x = stars, y = price, color = room_type)) + 
+  geom_point() 
+```
+
+![](bootstrapping_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+Bootstrap!
+
+``` r
+nyc_airbnb |> 
+  filter(borough == "Manhattan") |> 
+  modelr::bootstrap(n = 1000) |> 
+  mutate(
+    models = map(strap, \(df) lm(price ~ stars + room_type, data = df)),
+    results = map(models, broom::tidy)) |> 
+  select(results) |> 
+  unnest(results) |> 
+  filter(term == "stars") |> 
+  ggplot(aes(x = estimate)) + geom_density()
+```
+
+![](bootstrapping_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
